@@ -1,6 +1,8 @@
 mapController = Controller:new()
 mapController:setUI('ale_minimap', modules.game_interface.getMainRightPanel())
 
+
+local viewBox = nil
 local lastDragTime = 0
 local DRAG_GRACE_MS = 1000
 local iconTopMenu = nil
@@ -128,13 +130,51 @@ end
 --     for i, c in ipairs(rightPanel:getChildren()) do print(i, c:getId()) end
 -- end
 
+
+local function refreshViewBox()
+    local m = getActiveMinimap()
+    if not m then return end
+
+    
+    if not viewBox then
+        viewBox = g_ui.createWidget('UIWidget', m)
+        viewBox:setId('viewBox')
+        viewBox:setPhantom(true)        -- never blocks clicks or dragging
+        viewBox:setBorderWidth(1)
+        viewBox:setBorderColor('#ffffffaa')
+        viewBox:addAnchor(AnchorHorizontalCenter, 'parent', AnchorHorizontalCenter)
+        viewBox:addAnchor(AnchorVerticalCenter, 'parent', AnchorVerticalCenter)
+    end
+
+    if m.fullMapView then
+        viewBox:hide()
+        return
+    end
+
+    if m:getZoom() > 3 then
+        viewBox:hide()
+        return
+    end
+
+    
+    -- not shown on the fullscreen map
+    if m.fullMapView then
+        viewBox:hide()
+        return
+    end
+
+    local dim = modules.game_interface.getMapPanel():getVisibleDimension()
+    local scale = m:getScale()
+    print(scale)
+    viewBox:setWidth(math.max(3, dim.width * scale))
+    viewBox:setHeight(math.max(3, dim.height * scale))
+
+    viewBox:show()
+end
+
 function mapController:onGameStart()
     local m = mapController.ui.minimapBorder.minimap
-print("getScale:", m.getScale and m:getScale())
-print("getTilePoint:", m.getTilePoint and "exists")
-print("visibleDim:", modules.game_interface.getMapPanel():getVisibleDimension().width,
-      modules.game_interface.getMapPanel():getVisibleDimension().height)
-      
+    
     mapController:registerEvents(g_game, {
         onChangeWorldTime = onChangeWorldTime
     })
@@ -212,6 +252,7 @@ print("visibleDim:", modules.game_interface.getMapPanel():getVisibleDimension().
                 self:move(moveX, moveY)
                 self:zoomOut()
             end
+            refreshViewBox()
         end
     end
 
@@ -220,6 +261,8 @@ print("visibleDim:", modules.game_interface.getMapPanel():getVisibleDimension().
     if rightPanel and self.ui then
         rightPanel:moveChildToIndex(self.ui, 1)
     end
+
+    refreshViewBox()
 end
 
 
@@ -240,16 +283,23 @@ function mapController:onTerminate()
         iconTopMenu:destroy()
         iconTopMenu = nil
     end
+
+    if viewBox then
+        viewBox:destroy()
+        viewBox = nil
+    end
 end
 
 function zoomIn()
     local m = getActiveMinimap()
     if m then m:zoomIn() end
+    refreshViewBox()
 end
 
 function zoomOut()
     local m = getActiveMinimap()
     if m then m:zoomOut() end
+    refreshViewBox()
 end
 
 function openCyclopediaMap()
@@ -258,6 +308,7 @@ function openCyclopediaMap()
     else
         return fullscreen()
     end
+    refreshViewBox()
 end
 
 
@@ -280,6 +331,8 @@ function fullscreen()
         zoom = minimapWidget.zoomMinimap
         g_keyboard.unbindKeyDown('Escape')
         minimapWidget.fullMapView = false
+        minimapWidget:setZoom(zoom)
+        refreshViewBox()
     else
         fullscreenWidget = minimapWidget
         -- mapController.ui:hide(true)
@@ -287,10 +340,10 @@ function fullscreen()
         minimapWidget:fill('parent')
         zoom = minimapWidget.zoomFullmap
         g_keyboard.bindKeyDown('Escape', fullscreen)
+        viewBox:hide()
         minimapWidget.fullMapView = true
     end
 
-    minimapWidget:setZoom(zoom)
 
     -- Center on the local player character upon opening
     local player = g_game.getLocalPlayer()
