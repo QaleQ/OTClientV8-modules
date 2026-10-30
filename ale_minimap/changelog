@@ -1,0 +1,17 @@
+-- ale_minimap v0.1 (based on game_minimap)
+
+-- Google Maps-style map zoom
+    -- The mouse cursor retains its world position while zooming
+
+-- When hovered, the minimap won't auto-center on the player when you move
+    -- Makes clicking a specific spot easy to do while walking
+
+-- After dragging the minimap, auto-center is blocked for 1 second
+    -- Allows you to walk freely while dragging the map as much as you want, to reveal the location you're looking for
+
+-- The player's position is now updated in real-time on the fullscreen map
+
+-- The fullscreen map now only covers the game viewport
+    -- So you can still see messages, battle list, health, etc. while viewing the map
+
+-- The fullscreen map can be toggled by Ctrl+M

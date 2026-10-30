@@ -1,0 +1,21 @@
+Module
+  name: ale_minimap
+  description: game_minimap rewrite
+  author: ale
+  sandboxed: true
+  autoload: true
+  autoload-priority: 2000
+  scripts: [ ale_minimap ]
+  @onLoad: |
+    print("--- DEBUG: ale_minimap is loading successfully! ---")
+    local defaultMinimap = g_modules.getModule('game_minimap')
+    if defaultMinimap then
+        defaultMinimap:unload()
+    end
+    if mapController then
+        mapController:init()
+    end
+  @onUnload: |
+    if mapController then
+        mapController:terminate()
+    end
