@@ -156,7 +156,6 @@ local function refreshViewBox()
         return
     end
 
-    
     -- not shown on the fullscreen map
     if m.fullMapView then
         viewBox:hide()
@@ -165,9 +164,11 @@ local function refreshViewBox()
 
     local dim = modules.game_interface.getMapPanel():getVisibleDimension()
     local scale = m:getScale()
-    print(scale)
-    viewBox:setWidth(math.max(3, dim.width * scale))
-    viewBox:setHeight(math.max(3, dim.height * scale))
+    viewBox:setWidth((dim.width + 0.5) * scale)
+    viewBox:setHeight((dim.height + 0.5) * scale)
+
+    viewBox:setMarginTop(-0.5 * scale - 0.5)
+    viewBox:setMarginLeft(-0.5 * scale - 1)
 
     viewBox:show()
 end
@@ -456,4 +457,3 @@ _G.upLayer = upLayer
 _G.downLayer = downLayer
 _G.onClickRoseButton = onClickRoseButton
 _G.resetMap = resetMap
-print("ale: Z - end of file reached")
