@@ -34,6 +34,8 @@ local function refreshVirtualFloors()
     mapController.ui.layersPanel.automapLayers:setImageClip((virtualFloor * 14) .. ' 0 14 67')
 end
 
+local mapInitialized = false
+
 local function onPositionChange()
     local player = g_game.getLocalPlayer()
     if not player then return end
@@ -43,6 +45,10 @@ local function onPositionChange()
 
     local minimapWidget = getActiveMinimap()
     if not minimapWidget then return end
+    
+    if mapInitialized then
+        minimapWidget:setCrossPosition(pos)
+    end
 
     -- while a drag is in progress, keep pushing the timer forward
     if minimapWidget:isDragging() then
@@ -62,9 +68,12 @@ local function onPositionChange()
         end
     end
 
-    minimapWidget:setCrossPosition(pos)
     virtualFloor = pos.z
     refreshVirtualFloors()
+    if not mapInitialized then
+        minimapWidget:setCrossPosition(pos)
+        mapInitialized = true
+    end
 end
 
 function onChangeWorldTime(hour, minute)

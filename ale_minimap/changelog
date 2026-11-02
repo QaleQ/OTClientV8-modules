@@ -15,3 +15,9 @@
     -- So you can still see messages, battle list, health, etc. while viewing the map
 
 -- The fullscreen map can be toggled by Ctrl+M
+
+-- Draws a "view box" on the map, indicating the size of the game window relative to the map
+
+
+---- MINOR
+-- Player position cross now keeps updating while dragging the map
