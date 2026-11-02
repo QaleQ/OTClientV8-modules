@@ -264,6 +264,9 @@ function mapController:onGameStart()
             end
             refreshViewBox()
         end
+
+        minimap.cross:setMarginLeft(minimap.cross:getMarginLeft() - 1);
+        minimap.cross:setMarginTop(minimap.cross:getMarginTop() - 1);
     end
 
     -- move the minimap to the top of the right panel

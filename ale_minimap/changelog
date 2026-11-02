@@ -21,3 +21,4 @@
 
 ---- MINOR
 -- Player position cross now keeps updating while dragging the map
+-- Fixes the slight misalignment of the player cross on the map
