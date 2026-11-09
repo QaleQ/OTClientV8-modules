@@ -1,13 +1,14 @@
 mapController = Controller:new()
 mapController:setUI('ale_minimap', modules.game_interface.getMainRightPanel())
 
-
+local CUSTOM_FEATURES_GRACE_MS = 500
+local hoverStartTime = 0
 local viewBox = nil
 local lastDragTime = 0
 local DRAG_GRACE_MS = 1000
 local iconTopMenu = nil
 -- @ Minimap
-local minimapWidget = nil -- bot fix
+local minimapWidget = nil
 local otmm = true
 local fullscreenWidget
 local virtualFloor = 7
@@ -16,17 +17,17 @@ local currentDayTime = {
     m = 0
 }
 
-local function getActiveMinimap()
-    -- the same widget whether it sits in the panel or in the fullscreen viewport
-    return fullscreenWidget or mapController.ui.minimapBorder.minimap
+function mapController:onInit()
+    local m = self.ui.minimapBorder.minimap
+    m:getChildById('floorUpButton'):hide()
+    m:getChildById('floorDownButton'):hide()
+    m:getChildById('zoomInButton'):hide()
+    m:getChildById('zoomOutButton'):hide()
+    m:getChildById('resetButton'):hide()
 end
 
-function mapController:onInit()
-    self.ui.minimapBorder.minimap:getChildById('floorUpButton'):hide()
-    self.ui.minimapBorder.minimap:getChildById('floorDownButton'):hide()
-    self.ui.minimapBorder.minimap:getChildById('zoomInButton'):hide()
-    self.ui.minimapBorder.minimap:getChildById('zoomOutButton'):hide()
-    self.ui.minimapBorder.minimap:getChildById('resetButton'):hide()
+local function getActiveMinimap()
+    return fullscreenWidget or mapController.ui.minimapBorder.minimap
 end
 
 local function refreshVirtualFloors()
@@ -35,7 +36,6 @@ local function refreshVirtualFloors()
 end
 
 local mapInitialized = false
-
 local function onPositionChange()
     local player = g_game.getLocalPlayer()
     if not player then return end
@@ -46,14 +46,10 @@ local function onPositionChange()
     local minimapWidget = getActiveMinimap()
     if not minimapWidget then return end
     
-    if mapInitialized then
-        minimapWidget:setCrossPosition(pos)
-    end
 
     -- while a drag is in progress, keep pushing the timer forward
     if minimapWidget:isDragging() then
         lastDragTime = g_clock.millis()
-        return
     end
 
     if not minimapWidget.fullMapView then
@@ -68,23 +64,12 @@ local function onPositionChange()
         end
     end
 
+    minimapWidget:setCrossPosition(pos)
     virtualFloor = pos.z
     refreshVirtualFloors()
-    if not mapInitialized then
-        minimapWidget:setCrossPosition(pos)
-        mapInitialized = true
-    end
 end
 
 function onChangeWorldTime(hour, minute)
---[[ 
-
-check 
-tfs c++ (old) : void ProtocolGame::sendWorldTime()
-tfs lua (new) : function Player.sendWorldTime(self, time)
-Canary: void ProtocolGame::sendTibiaTime(int32_t time)
- ]]
-
     currentDayTime = {
         h = hour % 24,
         m = minute
@@ -128,18 +113,6 @@ Canary: void ProtocolGame::sendTibiaTime(int32_t time)
     end
 end
 
--- local function moveToTop()
---     local rightPanel = modules.game_interface.getMainRightPanel()
---     if not rightPanel or not mapController.ui then return end
---     if mapController.ui:getParent() ~= rightPanel then
---         rightPanel:insertChild(1, mapController.ui)
---     else
---         rightPanel:moveChildToIndex(mapController.ui, 1)
---     end
---     for i, c in ipairs(rightPanel:getChildren()) do print(i, c:getId()) end
--- end
-
-
 local function refreshViewBox()
     local m = getActiveMinimap()
     if not m then return end
@@ -148,25 +121,19 @@ local function refreshViewBox()
     if not viewBox then
         viewBox = g_ui.createWidget('UIWidget', m)
         viewBox:setId('viewBox')
-        viewBox:setPhantom(true)        -- never blocks clicks or dragging
+        viewBox:setPhantom(true) -- never blocks clicks or dragging
         viewBox:setBorderWidth(1)
         viewBox:setBorderColor('#ffffffaa')
         viewBox:addAnchor(AnchorHorizontalCenter, 'parent', AnchorHorizontalCenter)
         viewBox:addAnchor(AnchorVerticalCenter, 'parent', AnchorVerticalCenter)
     end
 
-    if m.fullMapView then
+    if not m.fullMapView then
         viewBox:hide()
         return
     end
 
     if m:getZoom() > 3 then
-        viewBox:hide()
-        return
-    end
-
-    -- not shown on the fullscreen map
-    if m.fullMapView then
         viewBox:hide()
         return
     end
@@ -265,8 +232,8 @@ function mapController:onGameStart()
             refreshViewBox()
         end
 
-        minimap.cross:setMarginLeft(minimap.cross:getMarginLeft() - 1);
-        minimap.cross:setMarginTop(minimap.cross:getMarginTop() - 1);
+        minimap.cross:setMarginLeft(-1);
+        minimap.cross:setMarginTop(-1);
     end
 
     -- move the minimap to the top of the right panel

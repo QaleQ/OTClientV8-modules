@@ -22,3 +22,20 @@
 ---- MINOR
 -- Player position cross now keeps updating while dragging the map
 -- Fixes the slight misalignment of the player cross on the map
+
+
+
+
+-- TODO:
+
+-- FIX map recentering when changing floors
+-- fix viewbox
+-- Keep rectangle on player unless we're dragging the map maybe?
+-- make zoom on a marker go straight toward the marker's center
+-- delay the activation of google style zoom and map freezing after hovering, preferrably indicate the progress in some way
+-- research incorporating rebindability of ctrl+M
+-- research adding a menu in regular options to toggle things like viewBox
+-- "edit" marker
+-- re-center the map if mapinteraction is over
+-- add precision to the google zoom
+-- change where tooltip for markers appear (so mouse doesn't block the text)
